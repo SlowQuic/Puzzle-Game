@@ -1,0 +1,48 @@
+extends CharacterBody2D
+
+var speed = 200
+var jump = 300
+var grav = 10
+var mov = Vector2.ZERO
+var atirando = false
+var direction
+const lança_scene = preload("res://Cenas/lança.tscn")
+@onready var lanca_position: Marker2D = $lanca_position
+@onready var cooldown: Timer = $cooldown 
+
+func _physics_process(delta: float) -> void:
+	if !is_on_floor():
+		velocity.y += grav
+
+	if Input.is_action_pressed("cima") and is_on_floor():
+		velocity.y -= jump
+
+	mov.x = int(Input.is_action_pressed("direita")) - int(Input.is_action_pressed("esquerda"))
+	global_position += speed * mov * delta
+	
+	direction = Input.get_axis("direita", "esquerda")
+	
+	if Input.is_action_pressed("esquerda"):
+		if sign(lanca_position.position.x) == 1:
+			lanca_position.position.x *= -1
+	
+	if Input.is_action_pressed("direita"):
+		if sign(lanca_position.position.x) == -1:
+			lanca_position.position.x *= -1
+	
+	if Input.is_action_just_pressed("atirar"):
+		atirando = true
+		disparo_lança()
+	else:
+		atirando = false
+	
+	move_and_slide()
+
+func disparo_lança():
+	var lança_instance = lança_scene.instantiate()
+	if sign(lanca_position.position.x) == 1:
+		lança_instance.set_direction(1)
+	else:
+		lança_instance.set_direction(-1)
+	add_sibling(lança_instance)
+	lança_instance.global_position = lanca_position.global_position
